@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Activity, BarChart3, CalendarDays, ChevronDown, CircleGauge, Database, Facebook, Globe2, Menu, Search, Settings2, Share2, ShieldCheck, Sparkles, X } from 'lucide-react';
+import { Activity, BarChart3, CalendarDays, ChevronDown, CircleGauge, Facebook, Globe2, LogOut, Menu, Search, Settings2, Share2, ShieldCheck, Sparkles, X } from 'lucide-react';
 import type { CompareKey, NavKey, RangeKey, RangeState } from '../types';
 import { StatusPill } from './Ui';
 
@@ -13,14 +13,14 @@ const nav: Array<{ key: NavKey; label: string; icon: typeof Activity }> = [
   { key: 'trends', label: 'Google Trends', icon: Search },
 ];
 
-export function Sidebar({ active, onChange }: { active: NavKey; onChange: (key: NavKey) => void }) {
+export function Sidebar({ active, onChange, clientMode=false, onClientLogout }: { active: NavKey; onChange: (key: NavKey) => void; clientMode?: boolean; onClientLogout?:()=>void }) {
   const [open, setOpen] = useState(false);
   const choose = (key: NavKey) => { onChange(key); setOpen(false); };
   return <><button aria-label="Open menu" className="mobile-menu" onClick={() => setOpen(true)}><Menu size={20}/></button>{open && <button aria-label="Dismiss menu" className="sidebar-scrim" onClick={() => setOpen(false)}/>}<aside className={`sidebar ${open ? 'open' : ''}`}>
     <div className="brand-lockup"><div className="brand-mark"><span>J</span></div><div><strong>JAECOO</strong><small>Marketing Intelligence</small></div><button aria-label="Close sidebar" className="mobile-close" onClick={() => setOpen(false)}><X size={18}/></button></div>
-    <div className="workspace-chip"><span>JI</span><div><strong>Jaecoo Indonesia</strong><small>All connected accounts</small></div><ChevronDown size={14}/></div>
+    <div className="workspace-chip"><span>JI</span><div><strong>Jaecoo Indonesia</strong><small>{clientMode?'Read-only client view':'All connected accounts'}</small></div>{!clientMode&&<ChevronDown size={14}/>}</div>
     <nav><p className="nav-label">Intelligence</p>{nav.map((item) => <button className={active === item.key ? 'active' : ''} key={item.key} onClick={() => choose(item.key)}><item.icon size={18}/><span>{item.label}</span>{item.key === 'meta' || item.key === 'tiktok' ? <i className="nav-status pending"/> : null}</button>)}</nav>
-    <div className="sidebar-bottom"><p className="nav-label">Operations</p><button className={active === 'health' ? 'active' : ''} onClick={() => choose('health')}><Database size={18}/><span>Data health</span></button><div className="system-card"><div><ShieldCheck size={17}/><span>Read-only reporting</span></div><p>Campaign delivery controls are excluded from this app.</p></div><div className="user-row"><span className="user-avatar">W</span><div><strong>WAC Intelligence</strong><small>Owner workspace</small></div><Settings2 size={16}/></div></div>
+    <div className="sidebar-bottom">{!clientMode&&<><p className="nav-label">Operations</p><button className={active === 'settings' ? 'active' : ''} onClick={() => choose('settings')}><Settings2 size={18}/><span>Settings</span></button></>}<div className="system-card"><div><ShieldCheck size={17}/><span>Read-only reporting</span></div><p>{clientMode?'This client session cannot access source credentials or settings.':'Campaign delivery controls are excluded from this app.'}</p></div><div className="user-row"><span className="user-avatar">{clientMode?'J':'W'}</span><div><strong>{clientMode?'JAECOO Client':'WAC Intelligence'}</strong><small>{clientMode?'Protected view':'Owner workspace'}</small></div>{clientMode?<button aria-label="Sign out" className="icon-button" onClick={onClientLogout}><LogOut size={16}/></button>:<Settings2 size={16}/>}</div></div>
   </aside></>;
 }
 
@@ -42,6 +42,6 @@ export function Topbar({ range, onChange, loading, freshness }: { range: RangeSt
   </header>;
 }
 
-export function AppChrome({ children, active, onNav, range, onRange, loading, freshness }: { children: React.ReactNode; active: NavKey; onNav: (key: NavKey) => void; range: RangeState; onRange: (range: RangeState) => void; loading: boolean; freshness: { status: 'live' | 'partial' | 'unavailable' | 'seeded'; label: string } }) {
-  return <div className="app-shell"><Sidebar active={active} onChange={onNav}/><div className="main-shell"><Topbar range={range} onChange={onRange} loading={loading} freshness={freshness}/><main>{children}</main><footer><span>JAECOO Indonesia · Marketing Intelligence</span><span><Sparkles size={13}/> Database-backed reporting · Asia/Jakarta</span></footer></div></div>;
+export function AppChrome({ children, active, onNav, range, onRange, loading, freshness, clientMode=false, onClientLogout }: { children: React.ReactNode; active: NavKey; onNav: (key: NavKey) => void; range: RangeState; onRange: (range: RangeState) => void; loading: boolean; freshness: { status: 'live' | 'partial' | 'unavailable' | 'seeded'; label: string }; clientMode?:boolean; onClientLogout?:()=>void }) {
+  return <div className="app-shell"><Sidebar active={active} onChange={onNav} clientMode={clientMode} onClientLogout={onClientLogout}/><div className="main-shell"><Topbar range={range} onChange={onRange} loading={loading} freshness={freshness}/><main>{children}</main><footer><span>JAECOO Indonesia · Marketing Intelligence</span><span><Sparkles size={13}/> {clientMode?'Protected client reporting':'Database-backed reporting'} · Asia/Jakarta</span></footer></div></div>;
 }

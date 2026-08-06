@@ -1,4 +1,4 @@
-export type NavKey = 'overview' | 'meta' | 'tiktok' | 'google' | 'sov' | 'competitors' | 'trends' | 'health';
+export type NavKey = 'overview' | 'meta' | 'tiktok' | 'google' | 'sov' | 'competitors' | 'trends' | 'settings';
 export type RangeKey = '7' | '14' | '30' | '60' | '90' | '180' | 'mtd' | 'ytd' | 'custom';
 export type CompareKey = 'prev' | 'yoy' | 'none';
 
@@ -19,7 +19,6 @@ export interface KpiDatum {
 export interface PaidBlock {
   source: string;
   accountId: string;
-  currency: string;
   available: boolean;
   freshness: { latestReportDate: string; states: string[]; ingestedAt: string } | null;
   qaFlags: string[];

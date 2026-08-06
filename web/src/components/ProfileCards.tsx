@@ -1,5 +1,5 @@
-import { useState, type CSSProperties } from 'react';
-import { BadgeCheck, Heart, LoaderCircle, LockKeyhole, MessageCircle, MoreHorizontal, Play } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { BadgeCheck, Heart, LockKeyhole, MessageCircle, MoreHorizontal, Play } from 'lucide-react';
 import type { SocialBlock } from '../types';
 import { formatCompact } from '../lib/format';
 import { Card, Notice, StatusPill } from './Ui';
@@ -17,43 +17,8 @@ function ConnectRunbook({ connection }: { connection: NonNullable<SocialBlock['c
   return <Notice type="secure" title={connection.title}>
     <p>{connection.message}</p>
     <ol className="connect-steps">{connection.steps.map((step, index) => <li key={index}>{step}</li>)}</ol>
-    <OwnerOnboardingAction/>
+    <p className="settings-hint">A masteradmin can connect and backfill this account from Settings.</p>
   </Notice>;
-}
-
-function OwnerOnboardingAction() {
-  const [open, setOpen] = useState(false);
-  const [secret, setSecret] = useState('');
-  const [state, setState] = useState<'idle' | 'working' | 'success' | 'error'>('idle');
-  const [message, setMessage] = useState('');
-
-  async function run() {
-    setState('working');
-    setMessage('Registering and verifying the three channels…');
-    try {
-      const response = await fetch('/api/admin/onboard-organic', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${secret}`, Accept: 'application/json' },
-      });
-      const body = await response.json().catch(() => ({ message: 'The owner action did not return JSON.' }));
-      if (!response.ok) throw new Error(body.message ?? body.error ?? `Request failed (${response.status})`);
-      setSecret('');
-      setState('success');
-      setMessage('Channels verified as readable. Run an incremental refresh to populate profiles and posts.');
-    } catch (error) {
-      setState('error');
-      setMessage(error instanceof Error ? error.message : 'Onboarding failed');
-    }
-  }
-
-  return <div className="owner-onboarding">
-    <div className="owner-action"><LockKeyhole size={14}/><span>Owner credentials required</span><button className="button dark" onClick={() => setOpen((value) => !value)}>{open ? 'Cancel' : 'Owner onboarding'}</button></div>
-    {open && <div className="owner-form">
-      <label>Admin action token<input type="password" autoComplete="off" value={secret} onChange={(event) => setSecret(event.target.value)} placeholder="Not stored in the browser"/></label>
-      <button className="button dark" disabled={!secret || state === 'working'} onClick={run}>{state === 'working' && <LoaderCircle className="spin" size={13}/>}Register &amp; verify</button>
-      {message && <p className={`owner-result ${state}`}>{message}</p>}
-    </div>}
-  </div>;
 }
 
 function MediaPlaceholder({ index, tiktok = false }: { index: number; tiktok?: boolean }) {

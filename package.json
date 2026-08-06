@@ -18,6 +18,7 @@
     "import:wac-snapshot": "tsx scripts/import-wac-snapshot.ts",
     "import:wac-health-snapshot": "tsx scripts/import-wac-health-snapshot.ts",
     "import:google-web-snapshot": "tsx scripts/import-google-web-snapshot.ts",
+    "sync:organic-history": "tsx scripts/sync-organic-history.ts",
     "backfill": "tsx ingestion/backfill.ts",
     "ingest": "tsx ingestion/incremental.ts"
   },

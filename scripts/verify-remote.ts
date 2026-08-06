@@ -69,7 +69,6 @@ export function evaluateRemoteSnapshot(input: {
   }
 
   const googlePaid = object(input.google.paid);
-  if (!items(googlePaid.qaFlags).some((flag) => text(flag).includes('spend units'))) issues.push('Google Ads spend-units QA flag is missing.');
   if (!object(input.google.gsc).available) issues.push('Search Console is unavailable.');
   if (!object(input.google.ga4).available) issues.push('GA4 is unavailable.');
 

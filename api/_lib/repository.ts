@@ -35,9 +35,10 @@ function derived(values: Record<string, number>): Record<string, number | undefi
   return {
     ...values,
     ctr: values.impressions ? (values.clicks ?? 0) / values.impressions : undefined,
-    cpm: values.impressions ? ((values.spend ?? 0) / values.impressions) * 1000 : undefined,
   };
 }
+
+const COST_METRICS = new Set(['spend', 'cpm', 'cpc', 'cpa', 'cpv', 'cost', 'cost_per_conversion', 'conversion_value', 'roas']);
 
 function delta(current: number | undefined, comparison: number | undefined): number | null {
   if (current === undefined || comparison === undefined || comparison === 0) return null;
@@ -118,7 +119,7 @@ export async function getPaidBlock(platform: 'meta' | 'tiktok' | 'google', range
   const comparisonRows = range.comparison ? await paidRows(platform, range.comparison) : [];
   const current = derived(totals(currentRows));
   const comparison = range.comparison ? derived(totals(comparisonRows)) : null;
-  const metrics = ['spend', 'impressions', 'reach', 'clicks', 'ctr', 'cpm', 'conversions'] as const;
+  const metrics = ['impressions', 'reach', 'clicks', 'ctr', 'conversions'] as const;
 
   const buckets = new Map<string, Record<string, number>>();
   for (const row of currentRows) {
@@ -144,9 +145,10 @@ export async function getPaidBlock(platform: 'meta' | 'tiktok' | 'google', range
       and e.entity_type=f.entity_type and e.entity_id=f.entity_id
     where f.platform=${platform} and f.account_id=${ACCOUNTS[platform]}
       and f.entity_type=${entityType} and f.report_date between ${range.current.start} and ${range.current.end}
+      and f.metric not in ('spend','cpm','cpc','cpa','cpv','cost','cost_per_conversion','conversion_value','roas')
     group by f.entity_id, e.name, e.campaign_name, e.objective, e.funnel_stage, f.metric
-    order by sum(case when f.metric='spend' then coalesce(f.value_used,f.normalized_value,f.raw_value) else 0 end) desc
-    limit 12
+    order by sum(case when f.metric='impressions' then coalesce(f.value_used,f.normalized_value,f.raw_value) else 0 end) desc
+    limit 60
   `;
     const entityMap = new Map<string, Record<string, unknown>>();
     for (const row of rows) {
@@ -158,26 +160,28 @@ export async function getPaidBlock(platform: 'meta' | 'tiktok' | 'google', range
     item[String(row.metric)] = n(row.value);
       entityMap.set(id, item);
     }
-    return [...entityMap.values()];
+    return [...entityMap.values()].slice(0, 12).map((item) => Object.fromEntries(Object.entries(item).filter(([key]) => !COST_METRICS.has(key))));
   }
   const [campaigns, ads] = await Promise.all([entityBreakdown('campaign'), entityBreakdown('ad')]);
 
   const latest = currentRows.length ? currentRows.reduce((a, b) => dateKey(a.report_date) > dateKey(b.report_date) ? a : b) : null;
   const freshSet = [...new Set(currentRows.map((row) => row.freshness))];
   return {
-    source: 'WAC reporting warehouse', accountId: ACCOUNTS[platform], currency: 'IDR',
+    source: 'WAC reporting warehouse', accountId: ACCOUNTS[platform],
     available: currentRows.length > 0,
     freshness: latest ? { latestReportDate: dateKey(latest.report_date), states: freshSet, ingestedAt: latest.ingested_at } : null,
-    qaFlags: [
-      ...(platform === 'google' ? ['Google Ads spend units require reconciliation; raw value, currency and API version are preserved.'] : []),
-      ...(sourceState?.status === 'qa_warning' ? [String(sourceState.message ?? 'WAC page-summary reconciliation requires review.')] : []),
-    ],
+    qaFlags: sourceState?.status === 'qa_warning'
+      ? [String(sourceState.message ?? 'WAC page-summary reconciliation requires review.').replace(/spend[- ]units?/gi, 'reporting units')]
+      : [],
     kpis: metrics.map((metric) => ({
       metric, value: current[metric] ?? null,
       comparison: comparison?.[metric] ?? null,
       delta: delta(current[metric], comparison?.[metric]),
     })),
-    series: [...buckets].map(([date, values]) => ({ date, ...derived(values) })),
+    series: [...buckets].map(([date, values]) => ({
+      date,
+      ...Object.fromEntries(Object.entries(derived(values)).filter(([key]) => !COST_METRICS.has(key))),
+    })),
     campaigns, ads,
   };
 }

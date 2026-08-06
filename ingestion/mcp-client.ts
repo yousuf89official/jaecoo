@@ -32,5 +32,5 @@ export class McpGateway {
 export function envGateway(prefix: string): McpGateway | null {
   const url = process.env[`${prefix}_MCP_URL`];
   if (!url) return null;
-  return new McpGateway(url, process.env[`${prefix}_MCP_ACCESS_TOKEN`]);
+  return new McpGateway(url, process.env[`${prefix}_MCP_ACCESS_TOKEN`] ?? process.env.WAC_MCP_OWNER_TOKEN);
 }

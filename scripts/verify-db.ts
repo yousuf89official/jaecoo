@@ -4,7 +4,7 @@ import { getHealth, getPaidBlock, getSovBlock } from '../api/_lib/repository.ts'
 import { closeDb } from '../db/client.ts';
 
 try {
-  const range = resolveDateRange({ range: '30', cmp: 'prev', now: new Date('2026-08-03T04:00:00Z') });
+  const range = resolveDateRange({ range: '30', cmp: 'prev', now: new Date('2035-08-03T04:00:00Z') });
   const [health, sov, meta] = await Promise.all([getHealth(), getSovBlock(range), getPaidBlock('meta', range)]);
   if (health.states.length < 8) throw new Error(`Expected at least 8 source states; received ${health.states.length}`);
   if (sov.brands.length !== 6 || sov.latestSnapshot !== '2026-07-27') throw new Error('Verified Brand24 seed is incomplete');

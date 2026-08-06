@@ -13,6 +13,10 @@ import health from '../api/health.ts';
 import refresh from '../api/refresh.ts';
 import cron from '../api/cron/ingest.ts';
 import onboardOrganic from '../api/admin/onboard-organic.ts';
+import syncOrganic from '../api/admin/sync-organic.ts';
+import clientAccess from '../api/admin/client-access.ts';
+import clientSession from '../api/client/session.ts';
+import clientData from '../api/client/data.ts';
 import { closeDb } from '../db/client.ts';
 
 type Handler = (request: VercelRequest, response: VercelResponse) => unknown;
@@ -22,6 +26,8 @@ const routes = new Map<string, Handler>([
   ['/api/google', google], ['/api/sov', sov], ['/api/competitors', competitors],
   ['/api/health', health], ['/api/refresh', refresh], ['/api/cron/ingest', cron],
   ['/api/admin/onboard-organic', onboardOrganic],
+  ['/api/admin/sync-organic', syncOrganic], ['/api/admin/client-access', clientAccess],
+  ['/api/client/session', clientSession], ['/api/client/data', clientData],
 ]);
 
 const mime: Record<string, string> = {
@@ -50,6 +56,15 @@ function vercelResponse(response: ServerResponse): VercelResponse {
   return target;
 }
 
+async function requestBody(request: IncomingMessage) {
+  if (request.method === 'GET' || request.method === 'HEAD') return undefined;
+  const chunks: Buffer[] = [];
+  for await (const chunk of request) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  const raw = Buffer.concat(chunks).toString('utf8');
+  if (!raw) return undefined;
+  try { return JSON.parse(raw); } catch { return raw; }
+}
+
 async function serveStatic(pathname: string, response: ServerResponse) {
   const root = resolve('dist');
   const requested = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
@@ -71,6 +86,7 @@ const server = createServer(async (request: IncomingMessage, response: ServerRes
     if (handler) {
       const vercelRequest = request as VercelRequest;
       vercelRequest.query = query(url);
+      vercelRequest.body = await requestBody(request);
       await handler(vercelRequest, vercelResponse(response));
       return;
     }

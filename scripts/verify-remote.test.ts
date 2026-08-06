@@ -5,7 +5,7 @@ const now = new Date('2026-08-04T06:00:00Z');
 const recent = '2026-08-04T03:30:00Z';
 const paid = (accountId: string, google = false) => ({
   accountId, available: true, freshness: { latestReportDate: '2026-08-03' },
-  kpis: [{ metric: 'spend', value: 0 }], qaFlags: google ? ['Google Ads spend units require reconciliation.'] : [],
+  kpis: [{ metric: 'impressions', value: 1 }], qaFlags: [],
 });
 
 function fixture() {

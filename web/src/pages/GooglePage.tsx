@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { AlertOctagon, BarChart3, MousePointerClick, Search, UsersRound } from 'lucide-react';
+import { BarChart3, MousePointerClick, Search, UsersRound } from 'lucide-react';
 import { apiFetch, queryString } from '../lib/api';
 import { titleCase } from '../lib/format';
 import type { PaidBlock, RangeState, WebBlock } from '../types';
@@ -24,5 +24,5 @@ function WebSection({data,type}:{data:WebBlock;type:'gsc'|'ga4'}){
 export function GooglePage({range}:{range:RangeState}){
   const query=useQuery({queryKey:['google',range],queryFn:()=>apiFetch<GoogleResponse>(`/api/google?${queryString(range)}`),retry:1});
   const data=query.data??{paid:emptyPaid('2762824884'),gsc:emptyWeb('Google Search Console','sc-domain:jaecoo.id'),ga4:emptyWeb('Google Analytics 4','470554174')};
-  return <><PageHeader eyebrow="Google & Web" title="Demand to destination" description="Paid search, organic demand and website behaviour shown as distinct systems—without collapsing missing attribution into a blended total." aside={<div className="hero-badge warning"><AlertOctagon size={18}/><div><strong>Spend-unit QA</strong><span>Google raw values retained</span></div></div>}/><DataErrorBanner message={query.error?.message}/><PaidMetrics data={data.paid} platform="Google Ads"/><WebSection data={data.gsc} type="gsc"/><WebSection data={data.ga4} type="ga4"/></>;
+  return <><PageHeader eyebrow="Google & Web" title="Demand to destination" description="Paid search, organic demand and website behaviour shown as distinct systems—without collapsing missing attribution into a blended total."/><DataErrorBanner message={query.error?.message}/><PaidMetrics data={data.paid} platform="Google Ads"/><WebSection data={data.gsc} type="gsc"/><WebSection data={data.ga4} type="ga4"/></>;
 }
