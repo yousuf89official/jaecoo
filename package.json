@@ -1,0 +1,49 @@
+{
+  "name": "jaecoo-marketing-intelligence",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "local:full": "tsx scripts/local-runtime.ts",
+    "typecheck": "tsc -b --pretty false && tsc -p tsconfig.server.json --noEmit --pretty false",
+    "test": "vitest --config vitest.config.ts run",
+    "check": "npm run typecheck && npm run test && npm run build",
+    "db:migrate": "tsx db/migrate.ts",
+    "db:seed": "tsx db/seed.ts",
+    "verify:db": "tsx scripts/verify-db.ts",
+    "verify:remote": "tsx scripts/verify-remote.ts",
+    "import:wac-snapshot": "tsx scripts/import-wac-snapshot.ts",
+    "import:wac-health-snapshot": "tsx scripts/import-wac-health-snapshot.ts",
+    "import:google-web-snapshot": "tsx scripts/import-google-web-snapshot.ts",
+    "backfill": "tsx ingestion/backfill.ts",
+    "ingest": "tsx ingestion/incremental.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@tanstack/react-query": "^5.84.2",
+    "dotenv": "^17.2.1",
+    "lucide-react": "^0.468.0",
+    "postgres": "^3.4.7",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "recharts": "^3.1.2",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.2.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vercel/node": "^5.3.11",
+    "@vitejs/plugin-react": "^4.7.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.1",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
